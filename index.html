@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<title>减肥学习综合工作台</title>
+<meta name="theme-color" content="#10b981">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="减学工作台">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+  :root{
+    --green:#10b981; --green-d:#059669; --green-l:#d1fae5;
+    --teal:#0ea5e9; --orange:#f59e0b; --red:#ef4444; --purple:#8b5cf6;
+    --ink:#0f172a; --sub:#64748b; --line:#e2e8f0; --bg:#f1f5f9;
+    --card:#ffffff; --soft:#f8fafc; --shadow:0 1px 3px rgba(15,23,42,.08),0 8px 24px rgba(15,23,42,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  /* layout */
+  .app{display:flex;min-height:100vh}
+  .sidebar{width:236px;flex:0 0 236px;background:linear-gradient(180deg,#0f766e,#0f172a);
+    color:#e2e8f0;padding:22px 14px;position:sticky;top:0;height:100vh;overflow-y:auto}
+  .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;font-weight:700;font-size:17px;color:#fff}
+  .brand .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--teal));
+    display:grid;place-items:center;font-size:18px}
+  .nav{display:flex;flex-direction:column;gap:3px}
+  .nav a{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:10px;color:#cbd5e1;
+    font-size:14.5px;cursor:pointer;transition:.15s}
+  .nav a .ic{font-size:17px;width:22px;text-align:center}
+  .nav a:hover{background:rgba(255,255,255,.07);color:#fff}
+  .nav a.active{background:var(--green);color:#062b22;font-weight:600;box-shadow:0 4px 14px rgba(16,185,129,.4)}
+  .nav .grp{font-size:11px;letter-spacing:.1em;color:#64748b;padding:14px 12px 4px;text-transform:uppercase}
+  .main{flex:1;min-width:0;padding:26px 30px 60px}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+  .topbar h1{font-size:24px}
+  .topbar .date{color:var(--sub);font-size:13.5px;margin-top:3px}
+  .topbar .today-chip{background:var(--green-l);color:var(--green-d);padding:6px 14px;border-radius:999px;
+    font-size:13px;font-weight:600}
+  section.view{display:none;animation:fade .25s ease}
+  section.view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  h2.sec{font-size:18px;margin:6px 0 16px;display:flex;align-items:center;gap:9px}
+  h2.sec .em{font-size:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;
+    box-shadow:var(--shadow);margin-bottom:18px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:980px){.g3,.g4{grid-template-columns:repeat(2,1fr)}.sidebar{display:none}
+    .app{flex-direction:column}.main{padding:18px}}
+  @media(max-width:620px){.g2,.g3,.g4{grid-template-columns:1fr}}
+/* 移动端底部导航（PWA 添加到主屏幕后全屏使用） */
+.bottomnav{display:none}
+@media(max-width:980px){
+  .bottomnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;
+    background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);
+    padding:6px 2px calc(6px + env(safe-area-inset-bottom));justify-content:space-around}
+  .bottomnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+    font-size:10px;color:var(--sub);padding:5px 1px;border-radius:12px;cursor:pointer;text-decoration:none}
+  .bottomnav a .ic{font-size:19px;line-height:1}
+  .bottomnav a.active{color:var(--green-d);background:var(--green-l)}
+  .main{padding-bottom:86px}
+  .float-clear{bottom:80px;right:12px;padding:6px 10px;font-size:12px}
+}
+  /* home cards */
+  .mod-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;
+    box-shadow:var(--shadow);cursor:pointer;transition:.18s;display:flex;flex-direction:column;gap:8px;height:100%}
+  .mod-card:hover{transform:translateY(-3px);border-color:var(--green);box-shadow:0 12px 30px rgba(16,185,129,.18)}
+  .mod-card .mi{font-size:26px}
+  .mod-card .mt{font-weight:700;font-size:15.5px}
+  .mod-card .md{font-size:12.5px;color:var(--sub)}
+  .mod-card .badge{margin-top:auto;align-self:flex-start;font-size:11.5px;padding:3px 10px;border-radius:999px;
+    background:var(--soft);color:var(--sub)}
+  .mod-card .badge.ok{background:var(--green-l);color:var(--green-d)}
+  .mod-card .badge.warn{background:#fef3c7;color:#b45309}
+  /* stat tiles */
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+  .stat .lab{font-size:12.5px;color:var(--sub);display:flex;align-items:center;gap:6px}
+  .stat .val{font-size:26px;font-weight:700;margin-top:6px}
+  .stat .val small{font-size:13px;color:var(--sub);font-weight:500}
+  .stat .bar{height:7px;border-radius:999px;background:var(--line);margin-top:10px;overflow:hidden}
+  .stat .bar i{display:block;height:100%;border-radius:999px;background:var(--green)}
+  /* reminder list */
+  .remind{list-style:none;display:flex;flex-direction:column;gap:11px}
+  .remind li{display:flex;gap:11px;align-items:flex-start;font-size:14px}
+  .remind li .n{flex:0 0 22px;height:22px;border-radius:7px;background:var(--green-l);color:var(--green-d);
+    display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
+  /* forms */
+  label.fld{display:block;font-size:12.5px;color:var(--sub);margin:0 0 5px;font-weight:600}
+  input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;
+    font-size:14px;font-family:inherit;background:#fff;color:var(--ink);transition:.15s}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--green-l)}
+  .form-row{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin-bottom:12px}
+  .btn{border:none;cursor:pointer;background:var(--green);color:#062b22;font-weight:700;font-size:14px;
+    padding:10px 18px;border-radius:10px;transition:.15s;font-family:inherit}
+  .btn:hover{background:var(--green-d);color:#fff}
+  .btn.ghost{background:var(--soft);color:var(--ink);border:1px solid var(--line)}
+  .btn.ghost:hover{background:#eef2f7}
+  .btn.sm{padding:7px 13px;font-size:13px}
+  .btn.danger{background:#fee2e2;color:#b91c1c}
+  .row-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  /* tables */
+  .tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--line)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{background:var(--soft);color:var(--sub);font-weight:600;font-size:12.5px;position:sticky;top:0}
+  tbody tr:hover{background:#fafcff}
+  td .tag{font-size:11.5px;padding:2px 8px;border-radius:6px;background:var(--soft)}
+  .pill{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:999px;background:var(--green-l);color:var(--green-d)}
+  .pill.o{background:#fef3c7;color:#b45309}
+  .pill.b{background:#e0f2fe;color:#0369a1}
+  .pill.r{background:#fee2e2;color:#b91c1c}
+  .pill.g{background:#f3e8ff;color:#7c3aed}
+  /* water */
+  .water-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:6px}
+  @media(max-width:620px){.water-slots{grid-template-columns:repeat(2,1fr)}}
+  .slot{display:flex;align-items:center;gap:10px;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;
+    cursor:pointer;transition:.15s;user-select:none}
+  .slot:hover{border-color:var(--teal)}
+  .slot.done{border-color:var(--teal);background:#e0f2fe}
+  .slot .ck{width:24px;height:24px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;
+    font-size:15px;color:#fff;flex:0 0 24px}
+  .slot.done .ck{background:var(--teal);border-color:var(--teal)}
+  .slot .t{font-weight:600;font-size:14px}
+  .slot .m{font-size:12px;color:var(--sub)}
+  /* chart */
+  .chart-box{width:100%;overflow:hidden}
+  svg{display:block;width:100%;height:auto}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--sub);margin-top:8px}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  /* tabs */
+  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .tab{padding:8px 15px;border-radius:10px;background:var(--soft);color:var(--sub);font-size:13.5px;cursor:pointer;
+    border:1px solid var(--line);transition:.15s}
+  .tab.active{background:var(--green);color:#062b22;border-color:var(--green);font-weight:600}
+  /* takeout filter */
+  .filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .chip{padding:7px 14px;border-radius:999px;background:var(--soft);color:var(--sub);font-size:13px;cursor:pointer;
+    border:1px solid var(--line);transition:.15s}
+  .chip.active{background:var(--green);color:#062b22;border-color:var(--green);font-weight:600}
+  .tk{border:1px solid var(--line);border-radius:14px;padding:15px 16px;display:flex;flex-direction:column;gap:7px;
+    transition:.15s}
+  .tk:hover{border-color:var(--green);box-shadow:var(--shadow)}
+  .tk .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .tk .item{font-weight:700;font-size:14.5px}
+  .tk .kc{font-weight:700;color:var(--green-d);font-size:14px;white-space:nowrap}
+  .tk .meta{font-size:12.5px;color:var(--sub)}
+  .tk .tip{font-size:12.5px;background:#fffbeb;color:#92400e;padding:7px 10px;border-radius:8px;display:flex;gap:6px}
+  /* workout */
+  .wk{border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+  .wk .wt{font-weight:700;font-size:15px}
+  .wk .wc{font-size:13px;color:var(--sub)}
+  .wk .wf{display:flex;gap:8px;flex-wrap:wrap;font-size:12px}
+  .wk .done-btn{margin-top:auto}
+  .wk.today{border-color:var(--green);box-shadow:0 0 0 3px var(--green-l)}
+  .week-nav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+  .wd{padding:9px 13px;border-radius:10px;background:var(--soft);border:1px solid var(--line);font-size:13px;cursor:pointer}
+  .wd.active{background:var(--green);color:#062b22;border-color:var(--green);font-weight:600}
+  .wd .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--line);margin-left:6px;vertical-align:1px}
+  .wd .dot.on{background:var(--green)}
+  /* study */
+  .stage{border-left:4px solid var(--green);background:var(--soft);border-radius:0 12px 12px 0;padding:13px 16px;margin-bottom:10px}
+  .stage h4{font-size:14.5px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .stage p{font-size:13px;color:var(--sub);margin-top:4px}
+  .chk{display:flex;align-items:center;gap:11px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;
+    margin-bottom:9px;cursor:pointer;transition:.15s}
+  .chk:hover{border-color:var(--green)}
+  .chk.done{background:var(--green-l);border-color:var(--green)}
+  .chk .box{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);flex:0 0 22px;display:grid;place-items:center;
+    font-size:14px;color:#fff}
+  .chk.done .box{background:var(--green);border-color:var(--green)}
+  .chk .info .t{font-weight:600;font-size:14px}
+  .chk .info .d{font-size:12.5px;color:var(--sub)}
+  .chk .dur{margin-left:auto;font-size:12.5px;color:var(--sub);white-space:nowrap}
+  .empty{color:var(--sub);font-size:13.5px;text-align:center;padding:26px}
+  .muted{color:var(--sub);font-size:13px}
+  .note{font-size:12.5px;color:var(--sub);background:var(--soft);border-radius:10px;padding:11px 13px;margin-top:12px;
+    border:1px dashed var(--line)}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;
+    padding:11px 20px;border-radius:10px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:99}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .footer-note{margin-top:30px;font-size:12px;color:var(--sub);text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="logo">🌿</span>减肥学习工作台</div>
+    <nav class="nav" id="nav">
+      <a data-view="home" class="active"><span class="ic">🏠</span>工作台首页</a>
+      <div class="grp">健康管理</div>
+      <a data-view="weight"><span class="ic">⚖️</span>每日体重记录</a>
+      <a data-view="diet"><span class="ic">🍽️</span>饮食管理</a>
+      <a data-view="water"><span class="ic">💧</span>每日喝水量</a>
+      <a data-view="takeout"><span class="ic">🥡</span>低卡外卖推荐</a>
+      <a data-view="workout"><span class="ic">💪</span>塑形跟练计划</a>
+      <div class="grp">学习成长</div>
+      <a data-view="study"><span class="ic">📚</span>初级中药师学习</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="pageTitle">工作台首页</h1>
+        <div class="date" id="topDate"></div>
+      </div>
+      <div class="today-chip" id="todayChip"></div>
+    </div>
+
+    <!-- ============ HOME ============ -->
+    <section class="view active" id="v-home">
+      <div class="grid g4" id="homeStats" style="margin-bottom:18px"></div>
+      <h2 class="sec"><span class="em">📋</span>模块导航</h2>
+      <div class="grid g3" id="homeModules" style="margin-bottom:22px"></div>
+      <div class="card">
+        <h2 class="sec" style="margin-top:0"><span class="em">💡</span>每日提醒</h2>
+        <ul class="remind">
+          <li><span class="n">1</span><div>每天起床后先称重，记录体重到「每日体重记录」</div></li>
+          <li><span class="n">2</span><div>每餐记录饮食摄入量，控制总热量在 <b>1500–1800 kcal</b></div></li>
+          <li><span class="n">3</span><div>每天喝够 <b>2000 ml</b> 水，在「每日喝水量」打卡</div></li>
+          <li><span class="n">4</span><div>点外卖前查看「低卡外卖推荐」，避开热量炸弹</div></li>
+          <li><span class="n">5</span><div>按「塑形跟练计划」跟练，每周至少运动 4 天</div></li>
+          <li><span class="n">6</span><div>按「初级中药师学习计划」学习，每天至少 1 小时</div></li>
+        </ul>
+      </div>
+      <div class="footer-note">数据保存在本机浏览器（localStorage），刷新不丢失 · 如需重新开始可点击右下角「清空数据」</div>
+      <button class="btn danger sm float-clear" style="position:fixed;bottom:20px;right:20px" onclick="clearAll()">🗑 清空数据</button>
+    </section>
+
+    <!-- ============ WEIGHT ============ -->
+    <section class="view" id="v-weight">
+      <h2 class="sec"><span class="em">⚖️</span>每日体重记录</h2>
+      <div class="card">
+        <div class="row-actions" style="margin-bottom:14px">
+          <div style="flex:1;min-width:160px"><label class="fld">日期</label><input type="date" id="wDate"></div>
+          <div style="flex:1;min-width:120px"><label class="fld">体重(kg)</label><input type="number" step="0.1" id="wWeight" placeholder="如 58.5"></div>
+          <div style="flex:1;min-width:120px"><label class="fld">腰围(cm)</label><input type="number" step="0.1" id="wWaist" placeholder="可选"></div>
+          <div style="flex:1;min-width:120px"><label class="fld">体脂率(%)</label><input type="number" step="0.1" id="wFat" placeholder="可选"></div>
+        </div>
+        <div class="row-actions" style="margin-bottom:14px">
+          <div style="flex:1;min-width:120px"><label class="fld">晨尿颜色</label><input id="wUrine" placeholder="如 浅黄"></div>
+          <div style="flex:1;min-width:120px"><label class="fld">运动消耗(kcal)</label><input type="number" id="wEx" placeholder="可选"></div>
+          <div style="flex:2;min-width:160px"><label class="fld">备注</label><input id="wNote" placeholder="可选"></div>
+          <div style="align-self:flex-end"><button class="btn" onclick="saveWeight()">保存记录</button></div>
+        </div>
+        <label class="fld">趋势（留空自动标记）</label>
+        <div class="filter" id="wTrend">
+          <span class="chip" data-t="">自动</span><span class="chip" data-t="→">→ 持平</span>
+          <span class="chip" data-t="↓">↓ 下降</span><span class="chip" data-t="↑">↑ 上升</span>
+        </div>
+      </div>
+      <div class="card">
+        <h2 class="sec" style="margin-top:0"><span class="em">📈</span>体重趋势</h2>
+        <div class="chart-box" id="weightChart"></div>
+        <div class="legend">
+          <span><i style="background:var(--green)"></i>体重(kg)</span>
+          <span id="wStatLine" class="muted"></span>
+        </div>
+      </div>
+      <div class="grid g2">
+        <div class="card">
+          <h2 class="sec" style="margin-top:0"><span class="em">📊</span>周汇总</h2>
+          <div class="tbl-wrap"><table id="weekSummary"></table></div>
+        </div>
+        <div class="card">
+          <h2 class="sec" style="margin-top:0"><span class="em">📋</span>全部记录</h2>
+          <div class="tbl-wrap" style="max-height:340px;overflow:auto"><table id="weightTable"></table></div>
+        </div>
+      </div>
+      <div class="note">提示：每天晨起空腹、排便后称重，记录更准确。趋势栏可手动标记 ↑↓→，留空则根据前后记录自动判断。</div>
+    </section>
+
+    <!-- ============ DIET ============ -->
+    <section class="view" id="v-diet">
+      <h2 class="sec"><span class="em">🍽️</span>饮食管理</h2>
+      <div class="tabs">
+        <div class="tab active" data-tab="d-record">每日摄入记录</div>
+        <div class="tab" data-tab="d-plan">每日搭配方案</div>
+        <div class="tab" data-tab="d-ref">热量参考</div>
+      </div>
+      <div id="d-record">
+        <div class="card">
+          <div class="row-actions" style="margin-bottom:14px">
+            <div style="flex:1;min-width:140px"><label class="fld">日期</label><input type="date" id="dDate"></div>
+            <div style="flex:1;min-width:110px"><label class="fld">早餐(kcal)</label><input type="number" id="dB" placeholder="0"></div>
+            <div style="flex:1;min-width:110px"><label class="fld">午餐(kcal)</label><input type="number" id="dL" placeholder="0"></div>
+            <div style="flex:1;min-width:110px"><label class="fld">晚餐(kcal)</label><input type="number" id="dD" placeholder="0"></div>
+            <div style="flex:1;min-width:110px"><label class="fld">加餐(kcal)</label><input type="number" id="dS" placeholder="0"></div>
+          </div>
+          <div class="row-actions" style="margin-bottom:14px">
+            <div style="flex:1;min-width:160px"><label class="fld">备注</label><input id="dNote" placeholder="可选"></div>
+            <div style="align-self:flex-end"><button class="btn" onclick="saveDiet()">保存记录</button></div>
+          </div>
+          <div class="muted" style="margin-bottom:6px">目标区间：<b style="color:var(--green-d)">1500–1800 kcal/天</b>　｜　当前填写合计：<b id="dPreview">0</b> kcal</div>
+        </div>
+        <div class="card">
+          <h2 class="sec" style="margin-top:0"><span class="em">📊</span>每日热量 vs 目标</h2>
+          <div class="chart-box" id="dietChart"></div>
+          <div class="legend">
+            <span><i style="background:var(--green)"></i>达标(1500-1800)</span>
+            <span><i style="background:var(--orange)"></i>超标(&gt;1800)</span>
+            <span><i style="background:var(--teal)"></i>偏低(&lt;1500)</span>
+            <span style="background:#fef3c7;padding:1px 7px;border-radius:5px">虚线=目标区间</span>
+          </div>
+        </div>
+        <div class="card">
+          <h2 class="sec" style="margin-top:0"><span class="em">📋</span>摄入记录</h2>
+          <div class="tbl-wrap" style="max-height:320px;overflow:auto"><table id="dietTable"></table></div>
+        </div>
+      </div>
+      <div id="d-plan" style="display:none">
+        <div class="row-actions" style="margin-bottom:14px">
+          <span class="muted">今天（<b id="planToday"></b>）推荐搭配：</span>
+        </div>
+        <div class="card" id="todayPlan"></div>
+        <h2 class="sec"><span class="em">🗓</span>一周搭配总览</h2>
+        <div class="tbl-wrap"><table id="planTable"></table></div>
+        <div class="note">💡 搭配原则：每餐 = 优质碳水(1拳) + 蛋白质(1掌) + 蔬菜(2拳)；烹饪以蒸、煮、炖、凉拌为主。
+          ⚠️ 避免油炸、糖醋、红烧、勾芡类；饮品选白水、无糖茶、黑咖啡。</div>
+      </div>
+      <div id="d-ref" style="display:none">
+        <div class="card">
+          <h2 class="sec" style="margin-top:0"><span class="em">📌</span>每日热量参考（减脂期 1500–1800 kcal）</h2>
+          <div class="tbl-wrap"><table id="refTable"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ WATER ============ -->
+    <section class="view" id="v-water">
+      <h2 class="sec"><span class="em">💧</span>每日喝水量打卡</h2>
+      <div class="grid g3">
+        <div class="card" style="grid-column:span 1">
+          <h2 class="sec" style="margin-top:0"><span class="em">🎯</span>今日进度</h2>
+          <div id="waterRing" style="display:grid;place-items:center;padding:6px 0"></div>
+          <div class="muted" style="text-align:center" id="waterText"></div>
+        </div>
+        <div class="card" style="grid-column:span 2">
+          <h2 class="sec" style="margin-top:0"><span class="em">✅</span>打卡时段（每杯 250ml）</h2>
+          <div class="water-slots" id="waterSlots"></div>
+          <div class="note">💡 起床后第一杯温水促代谢；饭前30分钟喝水控食欲；运动前后各补 200–300ml；尿液浅黄即水分充足。</div>
+        </div>
+      </div>
+      <div class="card">
+        <h2 class="sec" style="margin-top:0"><span class="em">📅</span>近 7 天打卡</h2>
+        <div class="chart-box" id="waterChart"></div>
+      </div>
+    </section>
+
+    <!-- ============ TAKEOUT ============ -->
+    <section class="view" id="v-takeout">
+      <h2 class="sec"><span class="em">🥡</span>减脂期低卡外卖推荐</h2>
+      <div class="filter" id="takeoutFilter"></div>
+      <div class="grid g3" id="takeoutList"></div>
+      <div class="note">⚠️ 通用原则：避开油炸/丸子类/高油调料；汤品不喝汤；米饭控制一拳量；饮品选无糖。
+        💡 美团外卖周末五折：满40减20，板烧鸡腿堡减脂餐实付约21元，性价比高。</div>
+    </section>
+
+    <!-- ============ WORKOUT ============ -->
+    <section class="view" id="v-workout">
+      <h2 class="sec"><span class="em">💪</span>塑形跟练计划</h2>
+      <div class="tabs">
+        <div class="tab active" data-tab="w-week">周六野 · 一周燃脂</div>
+        <div class="tab" data-tab="w-oyx">欧阳春晓 · 经典系列</div>
+      </div>
+      <div id="w-week">
+        <div class="week-nav" id="weekNav"></div>
+        <div class="grid g2" id="weekPlan"></div>
+        <div class="note">📺 抖音/小红书搜「周六野zoey」找一周燃脂系列；B站搜博主名+训练名也有完整视频。建议收藏方便每日跟练。</div>
+      </div>
+      <div id="w-oyx" style="display:none">
+        <div class="grid g3" id="oyxList"></div>
+        <div class="note">📺 抖音/小红书搜「欧阳春晓沙漏腰」找完整跟练视频；B站同样可搜。</div>
+      </div>
+    </section>
+
+    <!-- ============ STUDY ============ -->
+    <section class="view" id="v-study">
+      <h2 class="sec"><span class="em">📚</span>初级中药师 · 90天备考</h2>
+      <div class="grid g2">
+        <div class="card">
+          <h2 class="sec" style="margin-top:0"><span class="em">📋</span>考试信息</h2>
+          <div class="tbl-wrap"><table id="examTable"></table></div>
+        </div>
+        <div class="card">
+          <h2 class="sec" style="margin-top:0"><span class="em">🎯</span>90天阶段规划</h2>
+          <div id="stageList"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2 class="sec" style="margin-top:0"><span class="em">🌙</span>今日学习打卡（晚间 19:00 后）</h2>
+        <div class="muted" style="margin-bottom:12px">黄金时间 19:00–21:20，固定时段形成生物钟。点击完成项打勾。</div>
+        <div id="studyChecks"></div>
+      </div>
+      <div class="card">
+        <h2 class="sec" style="margin-top:0"><span class="em">💡</span>备考建议</h2>
+        <ul class="remind">
+          <li><span class="n">1</span><div>晚间黄金时间 19:00–21:20 固定学习，形成生物钟</div></li>
+          <li><span class="n">2</span><div>学习顺序：专业知识 → 专业实践能力 → 相关专业知识 → 基础知识</div></li>
+          <li><span class="n">3</span><div>打基础阶段多听网课、做思维导图，通勤时间可听音频</div></li>
+          <li><span class="n">4</span><div>强化阶段做题是关键，章节题+课后题，限时训练</div></li>
+          <li><span class="n">5</span><div>冲刺阶段按考试时间刷真题，刷完分析错题原因</div></li>
+          <li><span class="n">6</span><div>推荐：人卫版教材 + 白薇网课 + 鸭题库APP + 真题卷</div></li>
+          <li><span class="n">7</span><div>成绩两年滚动管理，连续两年度通过 4 科即可取证</div></li>
+          <li><span class="n">8</span><div>周末加练 2–3 小时，补进度 + 做整套模拟卷</div></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</div>
+<nav class="bottomnav" id="bottomnav">
+  <a data-view="home" class="active"><span class="ic">🏠</span>首页</a>
+  <a data-view="weight"><span class="ic">⚖️</span>体重</a>
+  <a data-view="diet"><span class="ic">🍽️</span>饮食</a>
+  <a data-view="water"><span class="ic">💧</span>喝水</a>
+  <a data-view="takeout"><span class="ic">🥡</span>外卖</a>
+  <a data-view="workout"><span class="ic">💪</span>跟练</a>
+  <a data-view="study"><span class="ic">📚</span>学习</a>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============== 参考数据（整理自原 Excel） ============== */
+const WEEK_CN = ['周日','周一','周二','周三','周四','周五','周六'];
+const MEAL_PLAN = {
+  '周一':{b:'全麦面包2片+水煮蛋1个+无糖豆浆1杯+小番茄5颗',l:'杂粮饭1拳+清蒸鱼1份+西兰花+凉拌菠菜',d:'紫薯1个+鸡胸肉沙拉+冬瓜汤',s:'无糖酸奶1杯'},
+  '周二':{b:'燕麦粥1碗+鸡蛋1个+苹果半个',l:'糙米饭1拳+宫保鸡丁(少油)+蒜蓉生菜',d:'玉米1根+虾仁炒芦笋+番茄蛋汤',s:'小番茄10颗'},
+  '周三':{b:'全麦馒头半个+牛奶200ml+黄瓜1根',l:'荞麦面1碗+牛肉片+大量蔬菜+菌菇',d:'南瓜1块+清炒时蔬+豆腐汤',s:'坚果1小把(10g)'},
+  '周四':{b:'红薯1个+鸡蛋1个+无糖酸奶1杯',l:'杂粮饭1拳+白灼虾+清炒油麦菜',d:'山药1段+鸡胸肉+凉拌木耳',s:'苹果半个'},
+  '周五':{b:'玉米1根+牛奶200ml+圣女果5颗',l:'糙米饭1拳+清蒸鲈鱼+蒜蓉西兰花',d:'全麦面包1片+金枪鱼沙拉',s:'无糖豆浆1杯'},
+  '周六':{b:'燕麦+香蕉半根+鸡蛋1个',l:'杂粮饭1拳+黑椒牛柳+炒时蔬',d:'紫薯1个+番茄蛋花汤+凉拌黄瓜',s:'小番茄10颗'}
+};
+const TAKEOUT = [
+  {cat:'西式快餐',item:'麦当劳 板烧鸡腿堡(去酱)+玉米杯+零卡可乐',combo:'堡+玉米杯+饮料',kcal:'≈450',tip:'去酱/少酱，选零卡饮品'},
+  {cat:'西式快餐',item:'肯德基 新奥尔良鸡腿堡(去皮)+美式',combo:'堡去皮+美式',kcal:'≈380',tip:'去皮减少脂肪'},
+  {cat:'西式快餐',item:'汉堡王 果木烤鸡腿堡+黑咖啡',combo:'烤鸡腿堡+黑咖',kcal:'≈420',tip:'避免油炸汉堡'},
+  {cat:'中式简餐',item:'沙县小吃 鸡腿饭(去皮)+青菜',combo:'鸡腿去皮+1/3饭+青菜',kcal:'≈480',tip:'去皮、米饭只吃1/3'},
+  {cat:'中式简餐',item:'老乡鸡 卤鸡腿+绿叶菜+糙米饭',combo:'1荤1素+适量饭',kcal:'≈500',tip:'选鸡胸肉更佳'},
+  {cat:'中式简餐',item:'真功夫 冬菇鸡腿肉套餐 多菜少饭',combo:'鸡腿肉+蒸蛋+多菜',kcal:'≈480',tip:'去掉表面油脂'},
+  {cat:'汤粉面',item:'潮汕牛肉粿条(不喝汤)+青菜',combo:'粿条半份+青菜',kcal:'≈450',tip:'不喝汤，避免高油'},
+  {cat:'汤粉面',item:'兰州牛肉面(不喝汤)+青菜',combo:'面条+青菜不喝汤',kcal:'≈500',tip:'关键是不喝汤'},
+  {cat:'麻辣烫',item:'清汤麻辣烫：鸡胸肉+豆腐+蔬菜+魔芋结',combo:'骨汤/番茄底+蔬菜蛋白',kcal:'≈400',tip:'免红油麻酱，少粉丝'},
+  {cat:'麻辣烫',item:'袁记云饺 鲜虾云吞10个+清汤+青菜',combo:'云吞+清汤+豆芽',kcal:'≈450',tip:'选清汤/番茄底，免红油'},
+  {cat:'日料',item:'寿司4-5个 + 刺身拼盘',combo:'寿司+刺身+味增汤',kcal:'≈400',tip:'避免天妇罗卷'},
+  {cat:'便利店',item:'关东煮：萝卜+魔芋丝+海带+鸡蛋+豆腐',combo:'蔬菜+蛋白为主',kcal:'≈200',tip:'避开丸子类'},
+  {cat:'特色',item:'窑鸡王 半只去皮窑鸡+生菜',combo:'去皮鸡肉+生菜',kcal:'≈280',tip:'去皮是关键'},
+  {cat:'特色',item:'赛百味 金枪鱼/照烧鸡排三明治',combo:'全麦+多蔬菜+低脂酱',kcal:'≈400',tip:'选蜂蜜芥末酱'}
+];
+const OYX = [
+  {name:'沙漏腰训练',time:'10分钟',content:'10个动作×1分钟：左右抱枕、屈膝掌肩、打高尔夫、屈膝抬腿、左右爆炒、脊柱扭转抬膝、侧腰拉伸、弓部胸椎扭转、屈膝抱腿、侧抬腿',lv:'入门',tg:'腰腹/斜肌'},
+  {name:'站立沙漏腰2.0',time:'20分钟',content:'站立无跑跳，呼吸口令指导，适合新手/大基数',lv:'入门',tg:'腰腹'},
+  {name:'直角肩与少女背',time:'10分钟',content:'YTWL矫正训练，消除圆肩驼背，练直角肩',lv:'入门',tg:'肩背'},
+  {name:'瘦手臂',time:'10分钟',content:'针对手臂拜拜肉，碎片时间可练',lv:'入门',tg:'手臂'},
+  {name:'瘦小腿',time:'10分钟',content:'强化足背屈+拉伸，拉长跟腱，矫正腿型',lv:'入门',tg:'小腿'},
+  {name:'泡沫轴放松',time:'17分钟',content:'全身泡沫轴放松，运动后必做',lv:'入门',tg:'全身放松'}
+];
+const ZLY = [
+  {day:'周一',theme:'瘦腿日',content:'10分钟小腿运动 + 10分钟燃脂瘦大腿 + 10分钟腿部拉伸',time:'30分钟',burn:'≈150'},
+  {day:'周二',theme:'瘦腰日',content:'5分钟腰部运动 + 3分钟平板支撑 + 5分钟侧腰训练',time:'13分钟',burn:'≈80'},
+  {day:'周三',theme:'瘦手臂日',content:'5分钟小蛮腰+手臂 + 10分钟改善斜方肌',time:'15分钟',burn:'≈100'},
+  {day:'周四',theme:'下肢塑形日',content:'10分钟瘦腿提臀 + 10分钟改善腿型 + 10分钟美腿拉伸',time:'30分钟',burn:'≈180'},
+  {day:'周五',theme:'腰腹日',content:'10分钟快速瘦腰 + 3分钟平板支撑 + 5分钟下腹运动',time:'18分钟',burn:'≈120'},
+  {day:'周六',theme:'燃脂日',content:'20分钟低难度有氧 + 10分钟高强度有氧',time:'30分钟',burn:'≈250'},
+  {day:'周日',theme:'休息日',content:'20分钟全身拉伸 + 8分钟子宫保养拉伸 + 1分钟箱式呼吸',time:'29分钟',burn:'≈80'}
+];
+const EXAM = [
+  {s:'基础知识',t:'8:30-10:00',c:'中药学(60%) + 方剂学(40%)',d:'90分钟',n:'100题',v:'100分'},
+  {s:'相关专业知识',t:'10:45-12:15',c:'中医学基础(45%) + 中药药理学(15%) + 药事管理(40%)',d:'90分钟',n:'100题',v:'100分'},
+  {s:'专业知识',t:'14:00-15:30',c:'中药炮制学(45%) + 中药鉴定学(55%)',d:'90分钟',n:'100题',v:'100分'},
+  {s:'专业实践能力',t:'16:15-17:45',c:'中药药剂学(50%) + 中药调剂学(50%)',d:'90分钟',n:'100题',v:'100分'}
+];
+const STAGES = [
+  {n:'第一阶段 基础扫荡',r:'第1-35天',task:'通读教材，建立知识框架，不求细记，有大概印象',d:'2小时',f:'理解为主，做思维导图',res:'人卫版官方教材+白薇网课'},
+  {n:'第二阶段 刷题复盘',r:'第36-50天',task:'大量做题，边做边总结，遇到不会的翻书对照',d:'2小时',f:'章节题+课后题，查漏补缺',res:'人卫版配套题+鸭题库APP'},
+  {n:'第三阶段 重点精读',r:'第51-65天',task:'根据刷题结果，针对常考点和重点内容精读',d:'2-2.5小时',f:'只看重点，强化记忆',res:'教材重点章节+笔记'},
+  {n:'第四阶段 真题冲刺',r:'第66-85天',task:'做近年真题和模拟试卷，不翻书先做后对答案',d:'2.5小时',f:'限时做题，错题分析',res:'真题卷+模拟卷'},
+  {n:'第五阶段 查漏补缺',r:'第86-95天',task:'复习笔记和错题集，巩固易错点，保持心态',d:'1.5-2小时',f:'只看错题和笔记，不学新内容',res:'错题集+笔记'}
+];
+const STUDY_TPL = [
+  {id:'goal',time:'19:00-19:10',t:'目标设定',d:'明确今晚学习目标和任务清单',dur:'10min',ck:true},
+  {id:'learn',time:'19:10-20:00',t:'听课/看书',d:'新章节学习，理解知识点，做笔记',dur:'50min',ck:true},
+  {id:'rest',time:'20:00-20:10',t:'休息',d:'起身活动、喝水、远眺（别看手机）',dur:'10min',ck:false},
+  {id:'practice',time:'20:10-21:00',t:'做题巩固',d:'对应章节练习题+错题整理',dur:'50min',ck:true},
+  {id:'review',time:'21:00-21:20',t:'复习总结',d:'回顾当天所学，整理思维导图',dur:'20min',ck:true}
+];
+const WATER_SLOTS = [['8:00','起床第一杯'],['10:00','工作间隙'],['12:00','午饭后'],['15:00','下午茶替'],['18:00','晚饭前'],['21:00','睡前']];
+
+/* ============== 存储 ============== */
+const K = {w:'wb_weight',d:'wb_diet',water:'wb_water',wo:'wb_workout',st:'wb_study'};
+const get = (k,def)=>{try{return JSON.parse(localStorage.getItem(k))??def}catch(e){return def}};
+const set = (k,v)=>localStorage.setItem(k,JSON.stringify(v));
+
+/* ============== 日期工具 ============== */
+const now = new Date();
+const TODAY_MD = fmtMD(now);
+function fmtMD(dt){return String(dt.getMonth()+1).padStart(2,'0')+'/'+String(dt.getDate()).padStart(2,'0')}
+function parseMD(s){const[m,d]=s.split('/').map(Number);return m*100+d}
+function mdToInput(s){const[m,d]=s.split('/').map(Number);const y=now.getFullYear();
+  return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
+function inputToMD(v){const[,m,d]=v.split('-');return m+'/'+d}
+const TODAY_WD = WEEK_CN[now.getDay()];
+
+/* ============== 导航 ============== */
+const TITLES={home:'工作台首页',weight:'每日体重记录',diet:'饮食管理',water:'每日喝水量',takeout:'低卡外卖推荐',workout:'塑形跟练计划',study:'初级中药师学习'};
+document.querySelectorAll('#nav a, #bottomnav a').forEach(a=>a.onclick=()=>go(a.dataset.view));
+function go(v){
+  document.querySelectorAll('#nav a, #bottomnav a').forEach(a=>a.classList.toggle('active',a.dataset.view===v));
+  document.querySelectorAll('section.view').forEach(s=>s.classList.toggle('active',s.id==='v-'+v));
+  document.getElementById('pageTitle').textContent=TITLES[v];
+  window.scrollTo(0,0);
+  if(v==='home')renderHome();
+  if(v==='weight')renderWeight();
+  if(v==='diet')renderDiet();
+  if(v==='water')renderWater();
+  if(v==='takeout')renderTakeout();
+  if(v==='workout')renderWorkout();
+  if(v==='study')renderStudy();
+}
+document.getElementById('topDate').textContent='今天是 '+now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 '+TODAY_WD;
+document.getElementById('todayChip').textContent='📅 '+TODAY_MD;
+
+/* ============== 通用 ============== */
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800)}
+function clearAll(){if(confirm('确定清空所有本地记录？此操作不可恢复。')){
+  Object.values(K).forEach(k=>localStorage.removeItem(k));toast('已清空数据');go('home');}}
+
+/* ============== 首页 ============== */
+function renderHome(){
+  const w=get(K.w,{}), d=get(K.d,{}), water=get(K.water,{}), wo=get(K.wo,{}), st=get(K.st,{});
+  const wToday=w[TODAY_MD], dToday=d[TODAY_MD];
+  const wSlots=water[TODAY_MD]||[]; const wPct=Math.round(wSlots.filter(Boolean).length/6*100);
+  const woDone=wo[TODAY_WD];
+  const stToday=st[TODAY_MD]||{}; const stDone=STUDY_TPL.filter(x=>x.ck).every(x=>stToday[x.id]);
+  const stats=[
+    {lab:'⚖️ 今日体重',val:wToday?.weight?wToday.weight+'<small> kg</small>':'—',pct:wToday?.weight?100:0,
+      sub:wToday?'已记录':'待称重',ok:!!wToday},
+    {lab:'🍽️ 今日热量',val:dToday?.total?dToday.total+'<small> kcal</small>':'—',
+      pct:Math.min(100,(dToday?.total||0)/1800*100),sub:dToday?'已记录':'待记录',ok:!!dToday&&dToday.total>=1500&&dToday.total<=1800},
+    {lab:'💧 喝水进度',val:wPct+'<small>%</small>',pct:wPct,sub:Math.round(wPct/100*2000)+' / 2000 ml',ok:wPct>=100},
+    {lab:'💪 今日跟练',val:woDone?'✅':'—',pct:woDone?100:0,sub:woDone?'已完成':'待跟练',ok:!!woDone},
+    {lab:'📚 学习打卡',val:stDone?'✅':'—',pct:stDone?100:0,sub:stDone?'已完成':'待学习',ok:stDone},
+    {lab:'📅 星期',val:TODAY_WD,sub:'今日',ok:true}
+  ];
+  document.getElementById('homeStats').innerHTML=stats.map(s=>`
+    <div class="stat"><div class="lab">${s.lab}</div>
+      <div class="val">${s.val}</div>
+      <div class="bar"><i style="width:${Math.max(4,s.pct)}%;background:${s.ok?'var(--green)':s.pct>=100?'var(--orange)':'var(--teal)'}"></i></div>
+      <div class="muted" style="font-size:12px;margin-top:6px">${s.sub}</div></div>`).join('');
+  const mods=[
+    {v:'weight',ic:'⚖️',t:'每日体重记录',d:'晨重 / 腰围 / 体脂 + 趋势图',badge:wToday?'今日已称 ✅':'待称重'},
+    {v:'diet',ic:'🍽️',t:'饮食管理',d:'热量记录 + 搭配方案 + 参考',badge:dToday?'今日已记 ✅':'待记录'},
+    {v:'water',ic:'💧',t:'每日喝水量',d:'6时段打卡 + 进度环',badge:wPct>=100?'已达标 ✅':wPct+'% 完成'},
+    {v:'takeout',ic:'🥡',t:'低卡外卖推荐',d:'14 款减脂外卖清单',badge:'点单不踩雷'},
+    {v:'workout',ic:'💪',t:'塑形跟练计划',d:'欧阳春晓 + 周六野',badge:woDone?'今日已练 ✅':'今日：'+ZLY.find(x=>x.day===TODAY_WD)?.theme},
+    {v:'study',ic:'📚',t:'初级中药师学习',d:'90天备考 + 每日打卡',badge:stDone?'今日完成 ✅':'待学习'}
+  ];
+  document.getElementById('homeModules').innerHTML=mods.map(m=>{
+    const b=m.badge.includes('✅')?'ok':(m.badge.includes('待')?'warn':'');
+    return `<div class="mod-card" onclick="go('${m.v}')"><span class="mi">${m.ic}</span>
+      <span class="mt">${m.t}</span><span class="md">${m.d}</span>
+      <span class="badge ${b}">${m.badge}</span></div>`;}).join('');
+}
+
+/* ============== 体重 ============== */
+let wTrend='';
+document.querySelectorAll('#wTrend .chip').forEach(c=>c.onclick=()=>{
+  document.querySelectorAll('#wTrend .chip').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');wTrend=c.dataset.t;});
+document.getElementById('wDate').value=mdToInput(TODAY_MD);
+function saveWeight(){
+  const md=TODAY_MD; // use today's md mapping for consistency
+  const date=inputToMD(document.getElementById('wDate').value);
+  const weight=parseFloat(document.getElementById('wWeight').value);
+  if(!weight){toast('请填写体重');return;}
+  const w=get(K.w,{});
+  const prev=w[date];
+  let trend=wTrend;
+  if(!trend){ // auto
+    const keys=Object.keys(w).filter(k=>k!==date).sort((a,b)=>parseMD(a)-parseMD(b));
+    let near=null;
+    for(const k of keys){if(parseMD(k)<parseMD(date))near=k;}
+    if(!near)for(const k of keys){if(parseMD(k)>parseMD(date)){near=k;break;}}
+    if(near){const diff=weight-(w[near].weight||weight);
+      trend=Math.abs(diff)<0.15?'→':(diff<0?'↓':'↑');}
+  }
+  w[date]={weight,waist:document.getElementById('wWaist').value||'',fat:document.getElementById('wFat').value||'',
+    urine:document.getElementById('wUrine').value||'',ex:document.getElementById('wEx').value||'',
+    note:document.getElementById('wNote').value||'',trend};
+  set(K.w,w);toast('体重已保存 ✅');renderWeight();
+}
+function renderWeight(){
+  const w=get(K.w,{});const keys=Object.keys(w).sort((a,b)=>parseMD(a)-parseMD(b));
+  const vals=keys.map(k=>({md:k,v:w[k].weight}));
+  // chart
+  const box=document.getElementById('weightChart');
+  if(vals.length<1){box.innerHTML='<div class="empty">暂无记录，先保存一条体重吧 📉</div>';}
+  else box.innerHTML=lineChart(vals,'体重 (kg)','var(--green)');
+  // stat line
+  if(vals.length>=2){const f=vals[0].v,l=vals[vals.length-1].v;const ch=(l-f).toFixed(1);
+    document.getElementById('wStatLine').textContent=`首录 ${f}kg → 最新 ${l}kg（${ch>=0?'+':''}${ch}kg）`;}
+  else document.getElementById('wStatLine').textContent= vals.length?`最新 ${vals[0].v}kg`:'';
+  // table
+  const tb=document.getElementById('weightTable');
+  tb.innerHTML='<thead><tr><th>日期</th><th>体重(kg)</th><th>腰围</th><th>体脂</th><th>晨尿</th><th>运动消耗</th><th>趋势</th><th>备注</th></tr></thead><tbody>'+
+    [...keys].reverse().map(k=>{const r=w[k];return `<tr><td>${k}</td><td><b>${r.weight}</b></td><td>${r.waist||'-'}</td><td>${r.fat||'-'}</td><td>${r.urine||'-'}</td><td>${r.ex?r.ex+'kcal':'-'}</td><td>${r.trend||'-'}</td><td class="muted">${r.note||''}</td></tr>`}).join('')+'</tbody>';
+  // weekly summary
+  const ws=document.getElementById('weekSummary');
+  const weeks=[['第1周','07/02','07/08'],['第2周','07/09','07/15'],['第3周','07/16','07/22'],['第4周','07/23','07/31']];
+  let rows='<thead><tr><th>周次</th><th>起始</th><th>结束</th><th>变化</th><th>平均</th><th>最低</th><th>最高</th></tr></thead><tbody>';
+  weeks.forEach(([name,s,e])=>{
+    const inw=keys.filter(k=>parseMD(k)>=parseMD(s)&&parseMD(k)<=parseMD(e)).map(k=>w[k].weight);
+    if(inw.length){const avg=(inw.reduce((a,b)=>a+b,0)/inw.length).toFixed(1);
+      const ch=(inw[inw.length-1]-inw[0]).toFixed(1);
+      rows+=`<tr><td><b>${name}</b></td><td>${inw[0]}</td><td>${inw[inw.length-1]}</td><td style="color:${ch<0?'var(--green-d)':'var(--red)'}">${ch>=0?'+':''}${ch}</td><td>${avg}</td><td>${Math.min(...inw)}</td><td>${Math.max(...inw)}</td></tr>`;}
+    else rows+=`<tr><td><b>${name}</b></td><td colspan="6" class="muted">暂无数据</td></tr>`;
+  });
+  ws.innerHTML=rows+'</tbody>';
+}
+
+/* ============== 饮食 ============== */
+document.querySelectorAll('#v-diet .tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('#v-diet .tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  ['d-record','d-plan','d-ref'].forEach(id=>document.getElementById(id).style.display=id===t.dataset.tab?'block':'none');
+});
+document.getElementById('dDate').value=mdToInput(TODAY_MD);
+['dB','dL','dD','dS'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
+  const s=window[id];const sum=['dB','dL','dD','dS'].reduce((a,id)=>a+(parseFloat(document.getElementById(id).value)||0),0);
+  document.getElementById('dPreview').textContent=Math.round(sum);}));
+function saveDiet(){
+  const date=inputToMD(document.getElementById('dDate').value);
+  const b=+document.getElementById('dB').value||0,l=+document.getElementById('dL').value||0,
+        d=+document.getElementById('dD').value||0,s=+document.getElementById('dS').value||0;
+  if(!b&&!l&&!d&&!s){toast('请填写至少一餐热量');return;}
+  const total=Math.round(b+l+d+s);
+  const dt=get(K.d,{});
+  dt[date]={b,l,d,s,total,note:document.getElementById('dNote').value||''};
+  set(K.d,dt);toast('饮食已保存 ✅');renderDiet();
+}
+function renderDiet(){
+  const dt=get(K.d,{});const keys=Object.keys(dt).sort((a,b)=>parseMD(a)-parseMD(b));
+  const vals=keys.map(k=>({md:k,v:dt[k].total}));
+  const box=document.getElementById('dietChart');
+  if(!vals.length)box.innerHTML='<div class="empty">暂无记录，先保存一条饮食吧 🍱</div>';
+  else box.innerHTML=barChart(vals);
+  const tb=document.getElementById('dietTable');
+  tb.innerHTML='<thead><tr><th>日期</th><th>早</th><th>午</th><th>晚</th><th>加餐</th><th>总计</th><th>状态</th><th>备注</th></tr></thead><tbody>'+
+    [...keys].reverse().map(k=>{const r=dt[k];const st=r.total>=1500&&r.total<=1800?'<span class="pill">达标</span>':
+      (r.total>1800?'<span class="pill o">超标</span>':'<span class="pill b">偏低</span>');
+      return `<tr><td>${k}</td><td>${r.b}</td><td>${r.l}</td><td>${r.d}</td><td>${r.s||0}</td><td><b>${r.total}</b></td><td>${st}</td><td class="muted">${r.note||''}</td></tr>`}).join('')+'</tbody>';
+  // plan today
+  const plan=MEAL_PLAN[TODAY_WD];
+  document.getElementById('planToday').textContent=TODAY_WD+(plan?'':'（周日为自由餐，可参考周一至周六）');
+  document.getElementById('todayPlan').innerHTML=plan?`
+    <div class="grid g2">
+      <div><div class="fld" style="color:var(--green-d)">🌅 早餐</div><div>${plan.b}</div></div>
+      <div><div class="fld" style="color:var(--green-d)">☀️ 午餐</div><div>${plan.l}</div></div>
+      <div><div class="fld" style="color:var(--green-d)">🌙 晚餐</div><div>${plan.d}</div></div>
+      <div><div class="fld" style="color:var(--green-d)">🍎 加餐</div><div>${plan.s}</div></div>
+    </div>`:'<div class="empty">周日未预设方案，建议清淡+控制总量，或复用喜欢的搭配 ✨</div>';
+  const pt=document.getElementById('planTable');
+  pt.innerHTML='<thead><tr><th>星期</th><th>早餐</th><th>午餐</th><th>晚餐</th><th>加餐</th></tr></thead><tbody>'+
+    Object.keys(MEAL_PLAN).map(day=>`<tr><td><b>${day}</b></td><td>${MEAL_PLAN[day].b}</td><td>${MEAL_PLAN[day].l}</td><td>${MEAL_PLAN[day].d}</td><td>${MEAL_PLAN[day].s}</td></tr>`).join('')+'</tbody>';
+  const rt=document.getElementById('refTable');
+  const ref=[['早餐','350-450','25%','全麦面包+鸡蛋+牛奶+蔬菜'],['午餐','550-700','40%','杂粮饭+优质蛋白+大量蔬菜'],
+    ['晚餐','400-500','28%','清淡为主，少油少盐，适量蛋白'],['加餐','100-150','7%','坚果/水果/酸奶（非必需）']];
+  rt.innerHTML='<thead><tr><th>餐次</th><th>建议热量(kcal)</th><th>占比</th><th>建议内容</th></tr></thead><tbody>'+
+    ref.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')+'</tbody>';
+}
+
+/* ============== 喝水 ============== */
+function renderWater(){
+  const water=get(K.water,{});
+  let slots=water[TODAY_MD]||[false,false,false,false,false,false];
+  const done=slots.filter(Boolean).length;const pct=Math.round(done/6*100);
+  // ring
+  const R=70,C=2*Math.PI*R;const off=C*(1-pct/100);
+  document.getElementById('waterRing').innerHTML=`
+    <svg viewBox="0 0 180 180" width="180" height="180">
+      <circle cx="90" cy="90" r="${R}" fill="none" stroke="#e2e8f0" stroke-width="16"/>
+      <circle cx="90" cy="90" r="${R}" fill="none" stroke="var(--teal)" stroke-width="16" stroke-linecap="round"
+        stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 90 90)" style="transition:.4s"/>
+      <text x="90" y="84" text-anchor="middle" font-size="34" font-weight="700" fill="#0f172a">${pct}%</text>
+      <text x="90" y="110" text-anchor="middle" font-size="14" fill="#64748b">${done*250} / 2000 ml</text>
+    </svg>`;
+  document.getElementById('waterText').innerHTML=`已喝 <b style="color:var(--teal)">${done*250} ml</b>，${pct>=100?'🎉 今日达标！':'还差 '+(2000-done*250)+' ml'}`;
+  const sl=document.getElementById('waterSlots');
+  sl.innerHTML=WATER_SLOTS.map((s,i)=>`<div class="slot ${slots[i]?'done':''}" onclick="toggleWater(${i})">
+    <span class="ck">${slots[i]?'✓':''}</span><div><div class="t">${s[0]}</div><div class="m">${s[1]}</div></div></div>`).join('');
+  // 7 day chart
+  const days=[];for(let i=6;i>=0;i--){const dt=new Date(now);dt.setDate(now.getDate()-i);days.push(fmtMD(dt));}
+  const wv=days.map(md=>{const a=water[md]||[];return {md,v:a.filter(Boolean).length*250};});
+  document.getElementById('waterChart').innerHTML=barChartSimple(wv,'ml');
+}
+function toggleWater(i){
+  const water=get(K.water,{});let slots=water[TODAY_MD]||[false,false,false,false,false,false];
+  slots[i]=!slots[i];water[TODAY_MD]=slots;set(K.water,water);renderWater();
+  if(slots[i])toast('喝了一杯 💧 +250ml');
+}
+
+/* ============== 外卖 ============== */
+let tkCat='全部';
+function renderTakeout(){
+  const cats=['全部',...[...new Set(TAKEOUT.map(t=>t.cat))]];
+  document.getElementById('takeoutFilter').innerHTML=cats.map(c=>
+    `<span class="chip ${c===tkCat?'active':''}" onclick="setCat('${c}')">${c}</span>`).join('');
+  const list=TAKEOUT.filter(t=>tkCat==='全部'||t.cat===tkCat);
+  const cls={'西式快餐':'o','中式简餐':'g','汤粉面':'b','麻辣烫':'g','日料':'b','便利店':'o','特色':'g'};
+  document.getElementById('takeoutList').innerHTML=list.map(t=>`
+    <div class="tk"><div class="top"><span class="item">${t.item}</span><span class="kc">${t.kcal}</span></div>
+      <div class="meta">${t.combo}</div>
+      <div class="wf"><span class="pill ${cls[t.cat]||''}">${t.cat}</span></div>
+      <div class="tip">💡 ${t.tip}</div></div>`).join('');
+}
+function setCat(c){tkCat=c;renderTakeout();}
+
+/* ============== 跟练 ============== */
+let wkDay=TODAY_WD;
+document.querySelectorAll('#v-workout .tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('#v-workout .tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById('w-week').style.display=t.dataset.tab==='w-week'?'block':'none';
+  document.getElementById('w-oyx').style.display=t.dataset.tab==='w-oyx'?'block':'none';
+});
+function renderWorkout(){
+  const wo=get(K.wo,{});
+  document.getElementById('weekNav').innerHTML=ZLY.map(z=>
+    `<div class="wd ${z.day===wkDay?'active':''}" onclick="setWkDay('${z.day}')">${z.day}${z.day===TODAY_WD?'·今':''}<span class="dot ${wo[z.day]?'on':''}"></span></div>`).join('');
+  document.getElementById('weekPlan').innerHTML=ZLY.map(z=>`
+    <div class="wk ${z.day===TODAY_WD?'today':''}">
+      <div class="wt">${z.day} · ${z.theme}</div>
+      <div class="wc">${z.content}</div>
+      <div class="wf"><span class="pill b">⏱ ${z.time}</span><span class="pill o">🔥 ${z.burn}kcal</span>${z.day===TODAY_WD?'<span class="pill">今日</span>':''}</div>
+      <button class="btn sm done-btn" onclick="markWorkout('${z.day}')">${wo[z.day]?'✅ 已完成':'标记完成'}</button>
+    </div>`).join('');
+  document.getElementById('oyxList').innerHTML=OYX.map(o=>`
+    <div class="wk"><div class="wt">${o.name}</div><div class="wc">${o.content}</div>
+      <div class="wf"><span class="pill b">⏱ ${o.time}</span><span class="pill">${o.lv}</span><span class="pill g">${o.tg}</span></div></div>`).join('');
+}
+function setWkDay(d){wkDay=d;renderWorkout();}
+function markWorkout(d){const wo=get(K.wo,{});wo[d]=!wo[d];set(K.wo,wo);toast(wo[d]?'跟练完成 💪':'已取消');renderWorkout();}
+
+/* ============== 学习 ============== */
+function renderStudy(){
+  const et=document.getElementById('examTable');
+  et.innerHTML='<thead><tr><th>科目</th><th>时间</th><th>内容</th><th>时长</th><th>题量</th><th>分值</th></tr></thead><tbody>'+
+    EXAM.map(e=>`<tr><td><b>${e.s}</b></td><td>${e.t}</td><td class="muted">${e.c}</td><td>${e.d}</td><td>${e.n}</td><td>${e.v}</td></tr>`).join('')+'</tbody>';
+  document.getElementById('stageList').innerHTML=STAGES.map(s=>
+    `<div class="stage"><h4><span>${s.n}</span><span class="pill">${s.r} · ${s.d}</span></h4>
+     <p>${s.task}</p><p>重点：${s.f} ｜ 资料：${s.res}</p></div>`).join('');
+  const st=get(K.st,{});const today=st[TODAY_MD]||{};
+  document.getElementById('studyChecks').innerHTML=STUDY_TPL.map(x=>`
+    <div class="chk ${today[x.id]?'done':''}" onclick="toggleStudy('${x.id}')">
+      <span class="box">${today[x.id]?'✓':''}</span>
+      <div class="info"><div class="t">${x.t}</div><div class="d">${x.time} · ${x.d}</div></div>
+      <span class="dur">${x.dur}</span></div>`).join('');
+}
+function toggleStudy(id){const st=get(K.st,{});const today=st[TODAY_MD]||{};today[id]=!today[id];
+  st[TODAY_MD]=today;set(K.st,st);renderStudy();}
+
+/* ============== SVG 图表 ============== */
+function lineChart(vals,label,color){
+  const W=720,H=260,pl=44,pr=16,pt=18,pb=28;
+  const iw=W-pl-pr,ih=H-pt-pb;
+  const vs=vals.map(v=>v.v);let mn=Math.min(...vs),mx=Math.max(...vs);
+  if(mn===mx){mn-=1;mx+=1;}
+  const pad=(mx-mn)*0.15;mn-=pad;mx+=pad;
+  const X=i=>pl+iw*(vals.length===1?0.5:i/(vals.length-1));
+  const Y=v=>pt+ih*(1-(v-mn)/(mx-mn));
+  let grid='',gl=4;
+  for(let i=0;i<=gl;i++){const val=mn+(mx-mn)*i/gl;const y=Y(val);
+    grid+=`<line x1="${pl}" y1="${y}" x2="${W-pr}" y2="${y}" stroke="#eef2f7"/><text x="${pl-6}" y="${y+4}" text-anchor="end" font-size="10" fill="#94a3b8">${val.toFixed(1)}</text>`;}
+  let pts=vals.map((v,i)=>`<circle cx="${X(i)}" cy="${Y(v.v)}" r="3.5" fill="${color}"/>`).join('');
+  let line=vals.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(v.v).toFixed(1)}`).join(' ');
+  let labs=vals.map((v,i)=>`<text x="${X(i)}" y="${H-10}" text-anchor="middle" font-size="10" fill="#94a3b8">${v.md}</text>`).join('');
+  let dots=vals.map((v,i)=>`<text x="${X(i)}" y="${Y(v.v)-9}" text-anchor="middle" font-size="10" font-weight="600" fill="#334155">${v.v}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}">${grid}<path d="${line}" fill="none" stroke="${color}" stroke-width="2.5"/>${pts}${dots}${labs}</svg>`;
+}
+function barChart(vals){
+  const W=720,H=260,pl=36,pr=16,pt=18,pb=28;
+  const iw=W-pl-pr,ih=H-pt-pb;
+  const vs=vals.map(v=>v.v);let mx=Math.max(2000,...vs);mx=Math.ceil(mx/200)*200;
+  const Y=v=>pt+ih*(1-v/mx);
+  const bw=iw/vals.length*0.6,gap=iw/vals.length;
+  let grid='',gl=4;
+  for(let i=0;i<=gl;i++){const val=mx*i/gl;const y=Y(val);
+    grid+=`<line x1="${pl}" y1="${y}" x2="${W-pr}" y2="${y}" stroke="#eef2f7"/><text x="${pl-6}" y="${y+4}" text-anchor="end" font-size="10" fill="#94a3b8">${val}</text>`;}
+  const y1=Y(1800),y2=Y(1500);
+  const band=`<rect x="${pl}" y="${y1}" width="${iw}" height="${Math.max(0,y2-y1)}" fill="#10b981" opacity="0.08"/>
+    <line x1="${pl}" y1="${y1}" x2="${W-pr}" y2="${y1}" stroke="#10b981" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <line x1="${pl}" y1="${y2}" x2="${W-pr}" y2="${y2}" stroke="#10b981" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  let bars=vals.map((v,i)=>{const col=v.v>1800?'var(--orange)':(v.v<1500?'var(--teal)':'var(--green)');
+    const x=pl+gap*i+(gap-bw)/2;const y=Y(v.v);
+    return `<rect x="${x}" y="${y}" width="${bw}" height="${pt+ih-y}" rx="4" fill="${col}"/>
+      <text x="${x+bw/2}" y="${y-5}" text-anchor="middle" font-size="10" font-weight="600" fill="#334155">${v.v}</text>
+      <text x="${x+bw/2}" y="${H-9}" text-anchor="middle" font-size="9.5" fill="#94a3b8">${v.md}</text>`;}).join('');
+  return `<svg viewBox="0 0 ${W} ${H}">${grid}${band}${bars}</svg>`;
+}
+function barChartSimple(vals,unit){
+  const W=720,H=200,pl=36,pr=16,pt=18,pb=26;
+  const iw=W-pl-pr,ih=H-pt-pb;
+  const vs=vals.map(v=>v.v);let mx=Math.max(2000,...vs);mx=Math.ceil(mx/500)*500;
+  const Y=v=>pt+ih*(1-v/mx);
+  const bw=iw/vals.length*0.55,gap=iw/vals.length;
+  let grid='',gl=4;
+  for(let i=0;i<=gl;i++){const val=mx*i/gl;const y=Y(val);
+    grid+=`<line x1="${pl}" y1="${y}" x2="${W-pr}" y2="${y}" stroke="#eef2f7"/><text x="${pl-6}" y="${y+4}" text-anchor="end" font-size="10" fill="#94a3b8">${val}</text>`;}
+  let bars=vals.map((v,i)=>{const x=pl+gap*i+(gap-bw)/2;const y=Y(v.v);
+    const col=v.v>=2000?'var(--teal)':(v.v===0?'#e2e8f0':'var(--green)');
+    return `<rect x="${x}" y="${y}" width="${bw}" height="${pt+ih-y}" rx="4" fill="${col}"/>
+      <text x="${x+bw/2}" y="${y-5}" text-anchor="middle" font-size="10" font-weight="600" fill="#334155">${v.v}</text>
+      <text x="${x+bw/2}" y="${H-8}" text-anchor="middle" font-size="9.5" fill="#94a3b8">${v.md}</text>`;}).join('');
+  return `<svg viewBox="0 0 ${W} ${H}">${grid}${bars}</svg>`;
+}
+
+/* ============== PWA（仅通过 http 提供时注册，file:// 下跳过） ============== */
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+/* ============== init ============== */
+renderHome();
+</script>
+</body>
+</html>

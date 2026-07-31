@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=减肥学习综合工作台
+Comment=体重 / 饮食 / 喝水 / 外卖 / 跟练 / 中药师学习 一站式工作台
+Exec=bash -c 'D="$(dirname "%k")"; D="${D#file://}"; chromium --app="file://$D/index.html" 2>/dev/null || google-chrome --app="file://$D/index.html" 2>/dev/null || xdg-open "file://$D/index.html"'
+Icon=icon-512.png
+Terminal=false
+Type=Application
+Categories=Utility;Health;
+StartupWMClass=chromium
