@@ -120,18 +120,6 @@
   .pill.b{background:#e0f2fe;color:#0369a1}
   .pill.r{background:#fee2e2;color:#b91c1c}
   .pill.g{background:#f3e8ff;color:#7c3aed}
-  /* water */
-  .water-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:6px}
-  @media(max-width:620px){.water-slots{grid-template-columns:repeat(2,1fr)}}
-  .slot{display:flex;align-items:center;gap:10px;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;
-    cursor:pointer;transition:.15s;user-select:none}
-  .slot:hover{border-color:var(--teal)}
-  .slot.done{border-color:var(--teal);background:#e0f2fe}
-  .slot .ck{width:24px;height:24px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;
-    font-size:15px;color:#fff;flex:0 0 24px}
-  .slot.done .ck{background:var(--teal);border-color:var(--teal)}
-  .slot .t{font-weight:600;font-size:14px}
-  .slot .m{font-size:12px;color:var(--sub)}
   /* chart */
   .chart-box{width:100%;overflow:hidden}
   svg{display:block;width:100%;height:auto}
@@ -154,6 +142,11 @@
   .tk .item{font-weight:700;font-size:14.5px}
   .tk .kc{font-weight:700;color:var(--green-d);font-size:14px;white-space:nowrap}
   .tk .meta{font-size:12.5px;color:var(--sub)}
+  .tk .wf{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .tk .favbtn{margin-left:auto;border:1px solid var(--line);background:#fff;color:#f59e0b;font-size:12px;
+    padding:3px 10px;border-radius:999px;cursor:pointer;font-weight:600;transition:.15s}
+  .tk .favbtn:hover{border-color:#f59e0b}
+  .tk .favbtn.on{background:#fffbeb;border-color:#f59e0b;color:#b45309}
   .tk .tip{font-size:12.5px;background:#fffbeb;color:#92400e;padding:7px 10px;border-radius:8px;display:flex;gap:6px}
   /* workout */
   .wk{border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
@@ -200,7 +193,6 @@
       <div class="grp">健康管理</div>
       <a data-view="weight"><span class="ic">⚖️</span>每日体重记录</a>
       <a data-view="diet"><span class="ic">🍽️</span>饮食管理</a>
-      <a data-view="water"><span class="ic">💧</span>每日喝水量</a>
       <a data-view="takeout"><span class="ic">🥡</span>低卡外卖推荐</a>
       <a data-view="workout"><span class="ic">💪</span>塑形跟练计划</a>
       <div class="grp">学习成长</div>
@@ -226,9 +218,9 @@
         <h2 class="sec" style="margin-top:0"><span class="em">💡</span>每日提醒</h2>
         <ul class="remind">
           <li><span class="n">1</span><div>每天起床后先称重，记录体重到「每日体重记录」</div></li>
-          <li><span class="n">2</span><div>每餐记录饮食摄入量，控制总热量在 <b>1500–1800 kcal</b></div></li>
-          <li><span class="n">3</span><div>每天喝够 <b>2000 ml</b> 水，在「每日喝水量」打卡</div></li>
-          <li><span class="n">4</span><div>点外卖前查看「低卡外卖推荐」，避开热量炸弹</div></li>
+          <li><span class="n">2</span><div>参考「搭配方案 + 热量参考」安排三餐，控制总热量在 <b>1500–1800 kcal</b></div></li>
+          <li><span class="n">3</span><div>在「每日体重记录」完善身高 / 性别 / 年龄，自动算 <b>BMI 与体脂率</b></div></li>
+          <li><span class="n">4</span><div>点外卖前查看「低卡外卖推荐」，收藏适合自己的低卡选项</div></li>
           <li><span class="n">5</span><div>按「塑形跟练计划」跟练，每周至少运动 4 天</div></li>
           <li><span class="n">6</span><div>按「初级中药师学习计划」学习，每天至少 1 小时</div></li>
         </ul>
@@ -241,11 +233,22 @@
     <section class="view" id="v-weight">
       <h2 class="sec"><span class="em">⚖️</span>每日体重记录</h2>
       <div class="card">
+        <h2 class="sec" style="margin-top:0"><span class="em">👤</span>个人档案（用于算 BMI / 体脂率）</h2>
+        <div class="row-actions" style="margin-bottom:10px">
+          <div style="flex:1;min-width:120px"><label class="fld">身高(cm)</label><input type="number" id="pHeight" placeholder="如 162"></div>
+          <div style="flex:1;min-width:120px"><label class="fld">性别</label>
+            <select id="pSex"><option value="0">女</option><option value="1">男</option></select></div>
+          <div style="flex:1;min-width:120px"><label class="fld">年龄(可选)</label><input type="number" id="pAge" placeholder="如 28"></div>
+          <div style="align-self:flex-end"><button class="btn ghost" onclick="saveProfile()">保存档案</button></div>
+        </div>
+        <div class="muted" id="profileHint"></div>
+      </div>
+      <div class="card">
         <div class="row-actions" style="margin-bottom:14px">
           <div style="flex:1;min-width:160px"><label class="fld">日期</label><input type="date" id="wDate"></div>
-          <div style="flex:1;min-width:120px"><label class="fld">体重(kg)</label><input type="number" step="0.1" id="wWeight" placeholder="如 58.5"></div>
+          <div style="flex:1;min-width:120px"><label class="fld">体重(kg)</label><input type="number" step="0.1" id="wWeight" placeholder="如 58.5" oninput="previewBF()"></div>
           <div style="flex:1;min-width:120px"><label class="fld">腰围(cm)</label><input type="number" step="0.1" id="wWaist" placeholder="可选"></div>
-          <div style="flex:1;min-width:120px"><label class="fld">体脂率(%)</label><input type="number" step="0.1" id="wFat" placeholder="可选"></div>
+          <div style="flex:1;min-width:120px"><label class="fld">体脂率(%)</label><input id="wFatOut" placeholder="自动计算" readonly></div>
         </div>
         <div class="row-actions" style="margin-bottom:14px">
           <div style="flex:1;min-width:120px"><label class="fld">晨尿颜色</label><input id="wUrine" placeholder="如 浅黄"></div>
@@ -258,12 +261,15 @@
           <span class="chip" data-t="">自动</span><span class="chip" data-t="→">→ 持平</span>
           <span class="chip" data-t="↓">↓ 下降</span><span class="chip" data-t="↑">↑ 上升</span>
         </div>
+        <div class="muted" id="bfPreview" style="margin-top:10px"></div>
       </div>
       <div class="card">
-        <h2 class="sec" style="margin-top:0"><span class="em">📈</span>体重趋势</h2>
+        <h2 class="sec" style="margin-top:0"><span class="em">📈</span>体重 + BMI 趋势</h2>
         <div class="chart-box" id="weightChart"></div>
+        <div class="chart-box" id="bmiChart" style="margin-top:10px"></div>
         <div class="legend">
           <span><i style="background:var(--green)"></i>体重(kg)</span>
+          <span><i style="background:var(--teal)"></i>BMI</span>
           <span id="wStatLine" class="muted"></span>
         </div>
       </div>
@@ -277,48 +283,17 @@
           <div class="tbl-wrap" style="max-height:340px;overflow:auto"><table id="weightTable"></table></div>
         </div>
       </div>
-      <div class="note">提示：每天晨起空腹、排便后称重，记录更准确。趋势栏可手动标记 ↑↓→，留空则根据前后记录自动判断。</div>
+      <div class="note">提示：每天晨起空腹、排便后称重，记录更准确。填好身高后，记录体重会自动算出 BMI 与体脂率（Deurenberg 公式估算）。趋势栏可手动标记 ↑↓→，留空则根据前后记录自动判断。</div>
     </section>
 
     <!-- ============ DIET ============ -->
     <section class="view" id="v-diet">
       <h2 class="sec"><span class="em">🍽️</span>饮食管理</h2>
       <div class="tabs">
-        <div class="tab active" data-tab="d-record">每日摄入记录</div>
-        <div class="tab" data-tab="d-plan">每日搭配方案</div>
+        <div class="tab active" data-tab="d-plan">每日搭配方案</div>
         <div class="tab" data-tab="d-ref">热量参考</div>
       </div>
-      <div id="d-record">
-        <div class="card">
-          <div class="row-actions" style="margin-bottom:14px">
-            <div style="flex:1;min-width:140px"><label class="fld">日期</label><input type="date" id="dDate"></div>
-            <div style="flex:1;min-width:110px"><label class="fld">早餐(kcal)</label><input type="number" id="dB" placeholder="0"></div>
-            <div style="flex:1;min-width:110px"><label class="fld">午餐(kcal)</label><input type="number" id="dL" placeholder="0"></div>
-            <div style="flex:1;min-width:110px"><label class="fld">晚餐(kcal)</label><input type="number" id="dD" placeholder="0"></div>
-            <div style="flex:1;min-width:110px"><label class="fld">加餐(kcal)</label><input type="number" id="dS" placeholder="0"></div>
-          </div>
-          <div class="row-actions" style="margin-bottom:14px">
-            <div style="flex:1;min-width:160px"><label class="fld">备注</label><input id="dNote" placeholder="可选"></div>
-            <div style="align-self:flex-end"><button class="btn" onclick="saveDiet()">保存记录</button></div>
-          </div>
-          <div class="muted" style="margin-bottom:6px">目标区间：<b style="color:var(--green-d)">1500–1800 kcal/天</b>　｜　当前填写合计：<b id="dPreview">0</b> kcal</div>
-        </div>
-        <div class="card">
-          <h2 class="sec" style="margin-top:0"><span class="em">📊</span>每日热量 vs 目标</h2>
-          <div class="chart-box" id="dietChart"></div>
-          <div class="legend">
-            <span><i style="background:var(--green)"></i>达标(1500-1800)</span>
-            <span><i style="background:var(--orange)"></i>超标(&gt;1800)</span>
-            <span><i style="background:var(--teal)"></i>偏低(&lt;1500)</span>
-            <span style="background:#fef3c7;padding:1px 7px;border-radius:5px">虚线=目标区间</span>
-          </div>
-        </div>
-        <div class="card">
-          <h2 class="sec" style="margin-top:0"><span class="em">📋</span>摄入记录</h2>
-          <div class="tbl-wrap" style="max-height:320px;overflow:auto"><table id="dietTable"></table></div>
-        </div>
-      </div>
-      <div id="d-plan" style="display:none">
+      <div id="d-plan">
         <div class="row-actions" style="margin-bottom:14px">
           <span class="muted">今天（<b id="planToday"></b>）推荐搭配：</span>
         </div>
@@ -333,27 +308,6 @@
           <h2 class="sec" style="margin-top:0"><span class="em">📌</span>每日热量参考（减脂期 1500–1800 kcal）</h2>
           <div class="tbl-wrap"><table id="refTable"></table></div>
         </div>
-      </div>
-    </section>
-
-    <!-- ============ WATER ============ -->
-    <section class="view" id="v-water">
-      <h2 class="sec"><span class="em">💧</span>每日喝水量打卡</h2>
-      <div class="grid g3">
-        <div class="card" style="grid-column:span 1">
-          <h2 class="sec" style="margin-top:0"><span class="em">🎯</span>今日进度</h2>
-          <div id="waterRing" style="display:grid;place-items:center;padding:6px 0"></div>
-          <div class="muted" style="text-align:center" id="waterText"></div>
-        </div>
-        <div class="card" style="grid-column:span 2">
-          <h2 class="sec" style="margin-top:0"><span class="em">✅</span>打卡时段（每杯 250ml）</h2>
-          <div class="water-slots" id="waterSlots"></div>
-          <div class="note">💡 起床后第一杯温水促代谢；饭前30分钟喝水控食欲；运动前后各补 200–300ml；尿液浅黄即水分充足。</div>
-        </div>
-      </div>
-      <div class="card">
-        <h2 class="sec" style="margin-top:0"><span class="em">📅</span>近 7 天打卡</h2>
-        <div class="chart-box" id="waterChart"></div>
       </div>
     </section>
 
@@ -422,7 +376,6 @@
   <a data-view="home" class="active"><span class="ic">🏠</span>首页</a>
   <a data-view="weight"><span class="ic">⚖️</span>体重</a>
   <a data-view="diet"><span class="ic">🍽️</span>饮食</a>
-  <a data-view="water"><span class="ic">💧</span>喝水</a>
   <a data-view="takeout"><span class="ic">🥡</span>外卖</a>
   <a data-view="workout"><span class="ic">💪</span>跟练</a>
   <a data-view="study"><span class="ic">📚</span>学习</a>
@@ -493,10 +446,8 @@ const STUDY_TPL = [
   {id:'practice',time:'20:10-21:00',t:'做题巩固',d:'对应章节练习题+错题整理',dur:'50min',ck:true},
   {id:'review',time:'21:00-21:20',t:'复习总结',d:'回顾当天所学，整理思维导图',dur:'20min',ck:true}
 ];
-const WATER_SLOTS = [['8:00','起床第一杯'],['10:00','工作间隙'],['12:00','午饭后'],['15:00','下午茶替'],['18:00','晚饭前'],['21:00','睡前']];
-
 /* ============== 存储 ============== */
-const K = {w:'wb_weight',d:'wb_diet',water:'wb_water',wo:'wb_workout',st:'wb_study'};
+const K = {w:'wb_weight',d:'wb_diet',p:'wb_profile',wo:'wb_workout',st:'wb_study',tkFav:'wb_takeout_fav'};
 const get = (k,def)=>{try{return JSON.parse(localStorage.getItem(k))??def}catch(e){return def}};
 const set = (k,v)=>localStorage.setItem(k,JSON.stringify(v));
 
@@ -511,7 +462,7 @@ function inputToMD(v){const[,m,d]=v.split('-');return m+'/'+d}
 const TODAY_WD = WEEK_CN[now.getDay()];
 
 /* ============== 导航 ============== */
-const TITLES={home:'工作台首页',weight:'每日体重记录',diet:'饮食管理',water:'每日喝水量',takeout:'低卡外卖推荐',workout:'塑形跟练计划',study:'初级中药师学习'};
+const TITLES={home:'工作台首页',weight:'每日体重记录',diet:'饮食管理',takeout:'低卡外卖推荐',workout:'塑形跟练计划',study:'初级中药师学习'};
 document.querySelectorAll('#nav a, #bottomnav a').forEach(a=>a.onclick=()=>go(a.dataset.view));
 function go(v){
   document.querySelectorAll('#nav a, #bottomnav a').forEach(a=>a.classList.toggle('active',a.dataset.view===v));
@@ -521,7 +472,6 @@ function go(v){
   if(v==='home')renderHome();
   if(v==='weight')renderWeight();
   if(v==='diet')renderDiet();
-  if(v==='water')renderWater();
   if(v==='takeout')renderTakeout();
   if(v==='workout')renderWorkout();
   if(v==='study')renderStudy();
@@ -537,20 +487,18 @@ function clearAll(){if(confirm('确定清空所有本地记录？此操作不可
 
 /* ============== 首页 ============== */
 function renderHome(){
-  const w=get(K.w,{}), d=get(K.d,{}), water=get(K.water,{}), wo=get(K.wo,{}), st=get(K.st,{});
-  const wToday=w[TODAY_MD], dToday=d[TODAY_MD];
-  const wSlots=water[TODAY_MD]||[]; const wPct=Math.round(wSlots.filter(Boolean).length/6*100);
+  const w=get(K.w,{}), prof=get(K.p,{}), wo=get(K.wo,{}), st=get(K.st,{});
+  const wToday=w[TODAY_MD];
   const woDone=wo[TODAY_WD];
   const stToday=st[TODAY_MD]||{}; const stDone=STUDY_TPL.filter(x=>x.ck).every(x=>stToday[x.id]);
+  let bf='—', bfSub='先填身高', bfPct=0, bfOk=false;
+  if(wToday && prof.height){const c=computeBF(wToday.weight,prof);bf=c.fat+'<small>%</small>';bfSub='BMI '+c.bmi;bfPct=Math.min(100,c.fat/35*100);bfOk=c.fat>0;}
+  else if(prof.height) bfSub='待称重';
   const stats=[
-    {lab:'⚖️ 今日体重',val:wToday?.weight?wToday.weight+'<small> kg</small>':'—',pct:wToday?.weight?100:0,
-      sub:wToday?'已记录':'待称重',ok:!!wToday},
-    {lab:'🍽️ 今日热量',val:dToday?.total?dToday.total+'<small> kcal</small>':'—',
-      pct:Math.min(100,(dToday?.total||0)/1800*100),sub:dToday?'已记录':'待记录',ok:!!dToday&&dToday.total>=1500&&dToday.total<=1800},
-    {lab:'💧 喝水进度',val:wPct+'<small>%</small>',pct:wPct,sub:Math.round(wPct/100*2000)+' / 2000 ml',ok:wPct>=100},
+    {lab:'⚖️ 今日体重',val:wToday?.weight?wToday.weight+'<small> kg</small>':'—',pct:wToday?.weight?100:0,sub:wToday?'已记录':'待称重',ok:!!wToday},
+    {lab:'📊 今日体脂率',val:bf,pct:bfPct,sub:bfSub,ok:bfOk},
     {lab:'💪 今日跟练',val:woDone?'✅':'—',pct:woDone?100:0,sub:woDone?'已完成':'待跟练',ok:!!woDone},
-    {lab:'📚 学习打卡',val:stDone?'✅':'—',pct:stDone?100:0,sub:stDone?'已完成':'待学习',ok:stDone},
-    {lab:'📅 星期',val:TODAY_WD,sub:'今日',ok:true}
+    {lab:'📚 学习打卡',val:stDone?'✅':'—',pct:stDone?100:0,sub:stDone?'已完成':'待学习',ok:stDone}
   ];
   document.getElementById('homeStats').innerHTML=stats.map(s=>`
     <div class="stat"><div class="lab">${s.lab}</div>
@@ -558,10 +506,9 @@ function renderHome(){
       <div class="bar"><i style="width:${Math.max(4,s.pct)}%;background:${s.ok?'var(--green)':s.pct>=100?'var(--orange)':'var(--teal)'}"></i></div>
       <div class="muted" style="font-size:12px;margin-top:6px">${s.sub}</div></div>`).join('');
   const mods=[
-    {v:'weight',ic:'⚖️',t:'每日体重记录',d:'晨重 / 腰围 / 体脂 + 趋势图',badge:wToday?'今日已称 ✅':'待称重'},
-    {v:'diet',ic:'🍽️',t:'饮食管理',d:'热量记录 + 搭配方案 + 参考',badge:dToday?'今日已记 ✅':'待记录'},
-    {v:'water',ic:'💧',t:'每日喝水量',d:'6时段打卡 + 进度环',badge:wPct>=100?'已达标 ✅':wPct+'% 完成'},
-    {v:'takeout',ic:'🥡',t:'低卡外卖推荐',d:'14 款减脂外卖清单',badge:'点单不踩雷'},
+    {v:'weight',ic:'⚖️',t:'每日体重记录',d:'晨重 + BMI/体脂率',badge:wToday?'今日已称 ✅':'待称重'},
+    {v:'diet',ic:'🍽️',t:'饮食管理',d:'每日搭配方案 + 热量参考',badge:'查看方案'},
+    {v:'takeout',ic:'🥡',t:'低卡外卖推荐',d:'14 款外卖 + 收藏',badge:'点单不踩雷'},
     {v:'workout',ic:'💪',t:'塑形跟练计划',d:'欧阳春晓 + 周六野',badge:woDone?'今日已练 ✅':'今日：'+ZLY.find(x=>x.day===TODAY_WD)?.theme},
     {v:'study',ic:'📚',t:'初级中药师学习',d:'90天备考 + 每日打卡',badge:stDone?'今日完成 ✅':'待学习'}
   ];
@@ -578,13 +525,43 @@ document.querySelectorAll('#wTrend .chip').forEach(c=>c.onclick=()=>{
   document.querySelectorAll('#wTrend .chip').forEach(x=>x.classList.remove('active'));
   c.classList.add('active');wTrend=c.dataset.t;});
 document.getElementById('wDate').value=mdToInput(TODAY_MD);
+function computeBF(weight,p){
+  const h=parseFloat(p.height); if(!h) return {bmi:'',fat:''};
+  const bmi=weight/((h/100)*(h/100));
+  const sex=(p.sex==='1'||p.sex===1)?1:0;
+  const age=parseFloat(p.age)||0;
+  let fat=1.20*bmi+0.23*age-10.8*sex-5.4;
+  fat=Math.max(0,Math.round(fat*10)/10);
+  return {bmi:Math.round(bmi*10)/10,fat};
+}
+function saveProfile(){
+  const p={height:document.getElementById('pHeight').value||'',sex:document.getElementById('pSex').value,age:document.getElementById('pAge').value||''};
+  if(!p.height){toast('请填写身高');return;}
+  set(K.p,p);toast('档案已保存 ✅');renderWeight();
+}
+function renderProfileHint(){
+  const el=document.getElementById('profileHint');if(!el)return;
+  const p=get(K.p,{});
+  if(p.height) el.innerHTML='已保存：身高 '+p.height+'cm · '+(p.sex==='1'?'男':'女')+(p.age?' · '+p.age+'岁':'');
+  else el.textContent='填写身高后，记录体重会自动算出 BMI 与体脂率。';
+}
+function previewBF(){
+  const prof=get(K.p,{});const el=document.getElementById('bfPreview');const out=document.getElementById('wFatOut');
+  if(!el)return;
+  if(!prof.height){el.textContent='💡 先在上方填写身高，记录体重即可自动估算体脂率';if(out)out.value='';return;}
+  const wt=parseFloat(document.getElementById('wWeight').value);
+  if(!wt){el.textContent='';if(out)out.value='';return;}
+  const c=computeBF(wt,prof);
+  el.innerHTML='预估：BMI <b>'+c.bmi+'</b> ｜ 体脂率 ≈ <b>'+c.fat+'%</b>';
+  if(out)out.value=c.fat;
+}
 function saveWeight(){
-  const md=TODAY_MD; // use today's md mapping for consistency
   const date=inputToMD(document.getElementById('wDate').value);
   const weight=parseFloat(document.getElementById('wWeight').value);
   if(!weight){toast('请填写体重');return;}
+  const prof=get(K.p,{});
+  const calc=prof.height?computeBF(weight,prof):{bmi:'',fat:''};
   const w=get(K.w,{});
-  const prev=w[date];
   let trend=wTrend;
   if(!trend){ // auto
     const keys=Object.keys(w).filter(k=>k!==date).sort((a,b)=>parseMD(a)-parseMD(b));
@@ -594,26 +571,38 @@ function saveWeight(){
     if(near){const diff=weight-(w[near].weight||weight);
       trend=Math.abs(diff)<0.15?'→':(diff<0?'↓':'↑');}
   }
-  w[date]={weight,waist:document.getElementById('wWaist').value||'',fat:document.getElementById('wFat').value||'',
+  w[date]={weight,waist:document.getElementById('wWaist').value||'',bmi:calc.bmi,fat:calc.fat,
     urine:document.getElementById('wUrine').value||'',ex:document.getElementById('wEx').value||'',
     note:document.getElementById('wNote').value||'',trend};
   set(K.w,w);toast('体重已保存 ✅');renderWeight();
 }
 function renderWeight(){
+  const prof=get(K.p,{});
+  if(document.getElementById('pHeight')){
+    document.getElementById('pHeight').value=prof.height||'';
+    document.getElementById('pSex').value=prof.sex||'0';
+    document.getElementById('pAge').value=prof.age||'';
+  }
+  renderProfileHint();previewBF();
   const w=get(K.w,{});const keys=Object.keys(w).sort((a,b)=>parseMD(a)-parseMD(b));
   const vals=keys.map(k=>({md:k,v:w[k].weight}));
-  // chart
+  // weight chart
   const box=document.getElementById('weightChart');
   if(vals.length<1){box.innerHTML='<div class="empty">暂无记录，先保存一条体重吧 📉</div>';}
   else box.innerHTML=lineChart(vals,'体重 (kg)','var(--green)');
+  // BMI chart
+  const bmiVals=keys.filter(k=>w[k].bmi!==''&&w[k].bmi!=null).map(k=>({md:k,v:w[k].bmi}));
+  const bmiBox=document.getElementById('bmiChart');
+  if(bmiVals.length<1){bmiBox.innerHTML='<div class="empty">填好身高并记录体重后，这里显示 BMI 曲线 📈</div>';}
+  else bmiBox.innerHTML=lineChart(bmiVals,'BMI','var(--teal)');
   // stat line
   if(vals.length>=2){const f=vals[0].v,l=vals[vals.length-1].v;const ch=(l-f).toFixed(1);
     document.getElementById('wStatLine').textContent=`首录 ${f}kg → 最新 ${l}kg（${ch>=0?'+':''}${ch}kg）`;}
   else document.getElementById('wStatLine').textContent= vals.length?`最新 ${vals[0].v}kg`:'';
   // table
   const tb=document.getElementById('weightTable');
-  tb.innerHTML='<thead><tr><th>日期</th><th>体重(kg)</th><th>腰围</th><th>体脂</th><th>晨尿</th><th>运动消耗</th><th>趋势</th><th>备注</th></tr></thead><tbody>'+
-    [...keys].reverse().map(k=>{const r=w[k];return `<tr><td>${k}</td><td><b>${r.weight}</b></td><td>${r.waist||'-'}</td><td>${r.fat||'-'}</td><td>${r.urine||'-'}</td><td>${r.ex?r.ex+'kcal':'-'}</td><td>${r.trend||'-'}</td><td class="muted">${r.note||''}</td></tr>`}).join('')+'</tbody>';
+  tb.innerHTML='<thead><tr><th>日期</th><th>体重(kg)</th><th>腰围</th><th>BMI</th><th>体脂%</th><th>晨尿</th><th>运动消耗</th><th>趋势</th><th>备注</th></tr></thead><tbody>'+
+    [...keys].reverse().map(k=>{const r=w[k];return `<tr><td>${k}</td><td><b>${r.weight}</b></td><td>${r.waist||'-'}</td><td>${r.bmi||'-'}</td><td>${r.fat||'-'}</td><td>${r.urine||'-'}</td><td>${r.ex?r.ex+'kcal':'-'}</td><td>${r.trend||'-'}</td><td class="muted">${r.note||''}</td></tr>`}).join('')+'</tbody>';
   // weekly summary
   const ws=document.getElementById('weekSummary');
   const weeks=[['第1周','07/02','07/08'],['第2周','07/09','07/15'],['第3周','07/16','07/22'],['第4周','07/23','07/31']];
@@ -632,34 +621,9 @@ function renderWeight(){
 document.querySelectorAll('#v-diet .tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('#v-diet .tab').forEach(x=>x.classList.remove('active'));
   t.classList.add('active');
-  ['d-record','d-plan','d-ref'].forEach(id=>document.getElementById(id).style.display=id===t.dataset.tab?'block':'none');
+  ['d-plan','d-ref'].forEach(id=>document.getElementById(id).style.display=id===t.dataset.tab?'block':'none');
 });
-document.getElementById('dDate').value=mdToInput(TODAY_MD);
-['dB','dL','dD','dS'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
-  const s=window[id];const sum=['dB','dL','dD','dS'].reduce((a,id)=>a+(parseFloat(document.getElementById(id).value)||0),0);
-  document.getElementById('dPreview').textContent=Math.round(sum);}));
-function saveDiet(){
-  const date=inputToMD(document.getElementById('dDate').value);
-  const b=+document.getElementById('dB').value||0,l=+document.getElementById('dL').value||0,
-        d=+document.getElementById('dD').value||0,s=+document.getElementById('dS').value||0;
-  if(!b&&!l&&!d&&!s){toast('请填写至少一餐热量');return;}
-  const total=Math.round(b+l+d+s);
-  const dt=get(K.d,{});
-  dt[date]={b,l,d,s,total,note:document.getElementById('dNote').value||''};
-  set(K.d,dt);toast('饮食已保存 ✅');renderDiet();
-}
 function renderDiet(){
-  const dt=get(K.d,{});const keys=Object.keys(dt).sort((a,b)=>parseMD(a)-parseMD(b));
-  const vals=keys.map(k=>({md:k,v:dt[k].total}));
-  const box=document.getElementById('dietChart');
-  if(!vals.length)box.innerHTML='<div class="empty">暂无记录，先保存一条饮食吧 🍱</div>';
-  else box.innerHTML=barChart(vals);
-  const tb=document.getElementById('dietTable');
-  tb.innerHTML='<thead><tr><th>日期</th><th>早</th><th>午</th><th>晚</th><th>加餐</th><th>总计</th><th>状态</th><th>备注</th></tr></thead><tbody>'+
-    [...keys].reverse().map(k=>{const r=dt[k];const st=r.total>=1500&&r.total<=1800?'<span class="pill">达标</span>':
-      (r.total>1800?'<span class="pill o">超标</span>':'<span class="pill b">偏低</span>');
-      return `<tr><td>${k}</td><td>${r.b}</td><td>${r.l}</td><td>${r.d}</td><td>${r.s||0}</td><td><b>${r.total}</b></td><td>${st}</td><td class="muted">${r.note||''}</td></tr>`}).join('')+'</tbody>';
-  // plan today
   const plan=MEAL_PLAN[TODAY_WD];
   document.getElementById('planToday').textContent=TODAY_WD+(plan?'':'（周日为自由餐，可参考周一至周六）');
   document.getElementById('todayPlan').innerHTML=plan?`
@@ -679,51 +643,30 @@ function renderDiet(){
     ref.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')+'</tbody>';
 }
 
-/* ============== 喝水 ============== */
-function renderWater(){
-  const water=get(K.water,{});
-  let slots=water[TODAY_MD]||[false,false,false,false,false,false];
-  const done=slots.filter(Boolean).length;const pct=Math.round(done/6*100);
-  // ring
-  const R=70,C=2*Math.PI*R;const off=C*(1-pct/100);
-  document.getElementById('waterRing').innerHTML=`
-    <svg viewBox="0 0 180 180" width="180" height="180">
-      <circle cx="90" cy="90" r="${R}" fill="none" stroke="#e2e8f0" stroke-width="16"/>
-      <circle cx="90" cy="90" r="${R}" fill="none" stroke="var(--teal)" stroke-width="16" stroke-linecap="round"
-        stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 90 90)" style="transition:.4s"/>
-      <text x="90" y="84" text-anchor="middle" font-size="34" font-weight="700" fill="#0f172a">${pct}%</text>
-      <text x="90" y="110" text-anchor="middle" font-size="14" fill="#64748b">${done*250} / 2000 ml</text>
-    </svg>`;
-  document.getElementById('waterText').innerHTML=`已喝 <b style="color:var(--teal)">${done*250} ml</b>，${pct>=100?'🎉 今日达标！':'还差 '+(2000-done*250)+' ml'}`;
-  const sl=document.getElementById('waterSlots');
-  sl.innerHTML=WATER_SLOTS.map((s,i)=>`<div class="slot ${slots[i]?'done':''}" onclick="toggleWater(${i})">
-    <span class="ck">${slots[i]?'✓':''}</span><div><div class="t">${s[0]}</div><div class="m">${s[1]}</div></div></div>`).join('');
-  // 7 day chart
-  const days=[];for(let i=6;i>=0;i--){const dt=new Date(now);dt.setDate(now.getDate()-i);days.push(fmtMD(dt));}
-  const wv=days.map(md=>{const a=water[md]||[];return {md,v:a.filter(Boolean).length*250};});
-  document.getElementById('waterChart').innerHTML=barChartSimple(wv,'ml');
-}
-function toggleWater(i){
-  const water=get(K.water,{});let slots=water[TODAY_MD]||[false,false,false,false,false,false];
-  slots[i]=!slots[i];water[TODAY_MD]=slots;set(K.water,water);renderWater();
-  if(slots[i])toast('喝了一杯 💧 +250ml');
-}
-
 /* ============== 外卖 ============== */
 let tkCat='全部';
 function renderTakeout(){
-  const cats=['全部',...[...new Set(TAKEOUT.map(t=>t.cat))]];
-  document.getElementById('takeoutFilter').innerHTML=cats.map(c=>
-    `<span class="chip ${c===tkCat?'active':''}" onclick="setCat('${c}')">${c}</span>`).join('');
-  const list=TAKEOUT.filter(t=>tkCat==='全部'||t.cat===tkCat);
+  const fav=get(K.tkFav,{});
+  const favCount=TAKEOUT.filter(t=>fav[t.item]).length;
+  const uniq=[...new Set(TAKEOUT.map(t=>t.cat))];
+  const cats=[['全部','全部'],['⭐','⭐ 收藏 '+favCount],...uniq.map(c=>[c,c])];
+  document.getElementById('takeoutFilter').innerHTML=cats.map(([k,t])=>
+    `<span class="chip ${k===tkCat?'active':''}" onclick="setCat('${k}')">${t}</span>`).join('');
+  let list=TAKEOUT.filter(t=>tkCat==='全部'||t.cat===tkCat);
+  if(tkCat==='⭐') list=TAKEOUT.filter(t=>fav[t.item]);
   const cls={'西式快餐':'o','中式简餐':'g','汤粉面':'b','麻辣烫':'g','日料':'b','便利店':'o','特色':'g'};
   document.getElementById('takeoutList').innerHTML=list.map(t=>`
     <div class="tk"><div class="top"><span class="item">${t.item}</span><span class="kc">${t.kcal}</span></div>
       <div class="meta">${t.combo}</div>
-      <div class="wf"><span class="pill ${cls[t.cat]||''}">${t.cat}</span></div>
+      <div class="wf"><span class="pill ${cls[t.cat]||''}">${t.cat}</span>
+        <button class="favbtn ${fav[t.item]?'on':''}" onclick="toggleFav('${t.item}')">${fav[t.item]?'★ 已收藏':'☆ 收藏'}</button></div>
       <div class="tip">💡 ${t.tip}</div></div>`).join('');
 }
 function setCat(c){tkCat=c;renderTakeout();}
+function toggleFav(item){
+  const f=get(K.tkFav,{});f[item]=!f[item];set(K.tkFav,f);renderTakeout();
+  if(f[item])toast('已收藏 ⭐');
+}
 
 /* ============== 跟练 ============== */
 let wkDay=TODAY_WD;
